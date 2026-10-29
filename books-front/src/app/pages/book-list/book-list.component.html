@@ -1,0 +1,92 @@
+<div *ngIf="authService.isAdmin()" class="flex justify-end gap-2 mb-4">
+    <a routerLink="/admin/books/new" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        + Ajouter un livre
+    </a>
+
+    <a routerLink="/admin/authors/new" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        + Ajouter un auteur
+    </a>
+</div>
+
+<!-- Recherche -->
+<app-search [authors]="authors" [searchTerm]="searchTerm" [selectedAuthor]="selectedAuthor"
+    (searchChange)="onSearchChange($event)" (authorChange)="onAuthorChange($event)"></app-search>
+
+<!-- Tableau des livres -->
+<div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse">
+
+        <!-- En-têtes -->
+        <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+                <th class="px-6 py-4">Titre</th>
+                <th class="px-6 py-4">Image</th>
+                <th class="px-6 py-4">Auteur</th>
+                <th class="px-6 py-4">Année</th>
+                <th class="px-6 py-4 text-right">Actions</th>
+            </tr>
+        </thead>
+
+        <!-- Contenu -->
+        <tbody class="divide-y divide-gray-100">
+
+            <tr *ngIf="loading">
+                <td colspan="5" class="px-6 py-10 text-center text-gray-500">
+                    Chargement des livres...
+                </td>
+            </tr>
+
+            <tr *ngIf="!loading && errorMessage">
+                <td colspan="5" class="px-6 py-10 text-center text-red-600">
+                    {{ errorMessage }}
+                </td>
+            </tr>
+
+            <tr *ngFor="let book of books" class="hover:bg-gray-50 transition">
+                <td class="px-6 py-5">
+                    <p class="font-semibold text-gray-800">
+                        {{ book.title }}
+                    </p>
+                    <p class="text-sm text-gray-400 mt-1">
+                        Livre #{{ book.id }}
+                    </p>
+                </td>
+
+                <td class="px-6 py-5">
+                    <img *ngIf="book.image" [src]="book.image" [alt]="'Couverture de ' + book.title"
+                        class="w-12 h-16 object-cover rounded-lg shadow-sm border border-gray-100" />
+
+                    <span *ngIf="!book.image" class="text-sm text-gray-400">
+                        Aucune image
+                    </span>
+                </td>
+
+                <td class="px-6 py-5 text-gray-600">
+                    {{ book.author.name }}
+                </td>
+
+                <td class="px-6 py-5 text-gray-600">
+                    {{ book.year }}
+                </td>
+
+                <td class="px-6 py-5 text-right">
+                    <button type="button" class="text-blue-600 hover:text-blue-800 font-medium"
+                        [routerLink]="['/books', book.id]">
+                        Détails →
+                    </button>
+                </td>
+            </tr>
+
+            <tr *ngIf="!loading && !errorMessage && books.length === 0">
+                <td colspan="5" class="px-6 py-10 text-center text-gray-500">
+                    Aucun livre trouvé.
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination -->
+<app-pagination [currentPage]="currentPage" [totalPages]="totalPages" [totalItems]="totalItems"
+    [itemsPerPage]="itemsPerPage" (pageChange)="onPageChange($event)"></app-pagination>

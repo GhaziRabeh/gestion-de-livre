@@ -1,0 +1,28 @@
+<div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-6">
+    <div class="flex flex-col md:flex-row gap-4">
+
+        <!-- Search by title -->
+        <div class="relative flex-1">
+            <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none"
+                stroke="currentColor" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="7" stroke-width="2"></circle>
+                <path d="m16 16 4 4" stroke-width="2" stroke-linecap="round"></path>
+            </svg>
+
+            <input type="text" placeholder="Rechercher un livre..." [ngModel]="searchTerm"
+                (ngModelChange)="searchChange.emit($event)"
+                class="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500" />
+        </div>
+
+        <!-- Filter by author -->
+        <select [ngModel]="selectedAuthor" (ngModelChange)="authorChange.emit($event)"
+            class="px-4 py-3 border border-gray-200 rounded-xl bg-white text-gray-600 outline-none focus:border-blue-500">
+            <option value="">Tous les auteurs</option>
+
+            <option *ngFor="let author of authors" [value]="author">
+                {{ author }}
+            </option>
+        </select>
+
+    </div>
+</div>

@@ -1,0 +1,104 @@
+
+<div class="p-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-semibold">Liste des livres</h1>
+
+    <a
+      routerLink="/admin/books/new"
+      class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+    >
+      + Ajouter un livre
+    </a>
+  </div>
+
+  <app-search [authors]="authors" [searchTerm]="searchTerm" [selectedAuthor]="selectedAuthor"
+    (searchChange)="onSearchChange($event)" (authorChange)="onAuthorChange($event)"></app-search>
+
+  <p *ngIf="loading" class="text-gray-500 mb-4">
+    Chargement des livres...
+  </p>
+
+  <p *ngIf="errorMessage" class="text-red-600 mb-4">
+    {{ errorMessage }}
+  </p>
+
+  <p *ngIf="successMessage" class="text-green-600 mb-4">
+    {{ successMessage }}
+  </p>
+
+  <div
+    *ngIf="!loading && !errorMessage"
+    class="overflow-x-auto bg-white border rounded-lg"
+  >
+    <table class="w-full text-left border-collapse">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="p-3">Titre</th>
+          <th class="p-3">Auteur</th>
+          <th class="p-3">Image</th>
+          <th class="p-3">Année</th>
+          <th class="p-3 text-right">Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr
+          *ngFor="let book of books"
+          class="border-t hover:bg-gray-50"
+        >
+          <td class="p-3">{{ book.title }}</td>
+
+          <td class="p-3">
+            {{ book.author.name || 'Auteur inconnu' }}
+          </td>
+
+          <td class="p-3">
+            <img
+              *ngIf="book.image; else noImage"
+              [src]="book.image"
+              [alt]="'Couverture de ' + book.title"
+              class="w-12 h-16 object-cover rounded"
+            />
+
+            <ng-template #noImage>
+              <span class="text-gray-400">Aucune image</span>
+            </ng-template>
+          </td>
+
+          <td class="p-3">{{ book.year }}</td>
+
+          <td class="p-3 text-right whitespace-nowrap">
+            <a
+              [routerLink]="['/admin/books', book.id, 'edit']"
+              class="text-blue-600 hover:underline mr-3"
+            >
+              Modifier
+            </a>
+
+            <button
+              type="button"
+              (click)="deleteBook(book.id)"
+              [disabled]="deletingBookId !== null"
+              class="text-red-600 hover:underline disabled:opacity-50"
+            >
+              {{
+                deletingBookId === book.id
+                  ? 'Suppression...'
+                  : 'Supprimer'
+              }}
+            </button>
+          </td>
+        </tr>
+
+        <tr *ngIf="books.length === 0">
+          <td colspan="5" class="p-6 text-center text-gray-500">
+            Aucun livre trouvé.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <app-pagination [currentPage]="currentPage" [totalPages]="totalPages" [totalItems]="totalItems"
+    [itemsPerPage]="itemsPerPage" (pageChange)="onPageChange($event)"></app-pagination>
+</div>

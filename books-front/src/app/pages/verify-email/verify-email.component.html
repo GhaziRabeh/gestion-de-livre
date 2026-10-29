@@ -1,0 +1,68 @@
+<div class="max-w-sm mx-auto">
+    <div class="mb-4 p-3 rounded bg-blue-50 border border-blue-200 text-blue-800 text-sm">
+        📩 Un code de vérification a été envoyé à votre adresse email.
+    </div>
+
+    <div class="bg-white border rounded p-6">
+        <h1 class="text-2xl font-semibold mb-2 text-center">
+            Vérification de l'email
+        </h1>
+
+        <p class="text-sm text-gray-600 text-center mb-6">
+            Entrez le code OTP reçu par email pour activer votre compte.
+        </p>
+
+        <form [formGroup]="verifyEmailForm" (ngSubmit)="onSubmit()" class="space-y-4">
+
+            <div>
+                <label for="email" class="block mb-1 font-medium">
+                    Email
+                </label>
+
+                <input id="email" type="email" formControlName="email" placeholder="exemple@email.com"
+                    class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+
+                <p *ngIf="verifyEmailForm.get('email')?.touched && verifyEmailForm.get('email')?.invalid"
+                    class="text-red-600 text-sm mt-1">
+                    Veuillez saisir un email valide.
+                </p>
+            </div>
+
+            <div>
+                <label for="otp" class="block mb-1 font-medium">
+                    Code OTP
+                </label>
+
+                <input id="otp" type="text" formControlName="otp" inputmode="numeric" autocomplete="one-time-code"
+                    maxlength="6" placeholder="Entrez le code reçu"
+                    class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+
+                <p *ngIf="verifyEmailForm.get('otp')?.touched && verifyEmailForm.get('otp')?.invalid"
+                    class="text-red-600 text-sm mt-1">
+                    Le code doit contenir exactement 6 chiffres.
+                </p>
+            </div>
+
+            <p *ngIf="errorMessage" class="text-red-600 text-sm" role="alert">
+                {{ errorMessage }}
+            </p>
+
+            <p *ngIf="successMessage" class="text-green-600 text-sm" role="status">
+                {{ successMessage }}
+            </p>
+
+            <button type="submit" [disabled]="verifyEmailForm.invalid || loading"
+                class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition disabled:opacity-50">
+
+                {{ loading ? 'Vérification...' : 'Vérifier mon email' }}
+            </button>
+        </form>
+
+        <p class="text-sm text-center text-gray-600 mt-4">
+            Déjà vérifié ?
+            <a routerLink="/login" class="text-blue-600 hover:underline">
+                Se connecter
+            </a>
+        </p>
+    </div>
+</div>
