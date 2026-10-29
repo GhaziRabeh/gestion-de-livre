@@ -210,7 +210,7 @@ Si le backend tourne sur une autre adresse, modifiez ces deux fichiers.
 ```mermaid
 erDiagram
     AUTHORS ||--o{ BOOKS : "écrit"
-    USERS ||--o{ PERSONAL_ACCESS_TOKENS : "possède"
+   
 
     AUTHORS {
         bigint id PK
@@ -229,34 +229,14 @@ erDiagram
         timestamp updated_at
     }
 
-    USERS {
-        bigint id PK
-        string name
-        string email "unique"
-        string password
-        enum role "admin | user"
-        string google_id "nullable"
-        timestamp email_verified_at "nullable"
-        string email_otp_hash "nullable"
-        timestamp email_otp_expires_at "nullable"
-        string password_reset_otp_hash "nullable"
-        timestamp password_reset_otp_expires_at "nullable"
-    }
 
-    PERSONAL_ACCESS_TOKENS {
-        bigint id PK
-        string tokenable_type
-        bigint tokenable_id
-        string name
-        string token "unique"
-    }
 ```
 
 Version texte :
 
 ```
 AUTHORS (1) ───────< (0..n) BOOKS
-USERS   (1) ───────< (0..n) PERSONAL_ACCESS_TOKENS
+
 ```
 
 ### 3.4 Export SQL
