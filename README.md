@@ -625,7 +625,7 @@ Sur la page `/admin/authors` (`author-list.component.ts`) :
 
 Base : `http://127.0.0.1:8000/api`. Toutes les réponses sont en JSON (middleware `ForceJsonResponse`).
 
-Une documentation Swagger générée par L5-Swagger est disponible sur **http://127.0.0.1:8000/api/documentation** (fichier `storage/api-docs/api-docs.json`).
+Une documentation Swagger générée par L5-Swagger est disponible sur **http://127.0.0.1:8000/api/documentation** (voir [9.4](#94-documentation-swagger)).
 
 ### 9.1 Routes
 
@@ -719,6 +719,70 @@ curl.exe -X DELETE http://127.0.0.1:8000/api/books/1 -H "Accept: application/jso
 | 500 | Voir la remarque ci-dessous |
 
 > ⚠️ Seules `RegisterException` et les erreurs d'authentification ont un code HTTP dédié (`app/Exceptions/Handler.php`). Les autres erreurs métier (`LoginException`, `ForgotPasswordException`, `BookException`, `AuthorException`, `LogoutException`) répondent avec un code **500**. Par exemple, un mauvais mot de passe renvoie un 500 avec le message `Invalid email or password.`. Avec `APP_DEBUG=false`, le message serait remplacé par `Server Error`.
+
+### 9.4 Documentation Swagger
+
+La documentation interactive de l'API est générée avec **L5-Swagger** (`darkaonline/l5-swagger` ^8.6, basé sur `swagger-php` et Swagger UI), au format OpenAPI 3.
+
+| Élément | Adresse / fichier |
+|---|---|
+| Interface Swagger UI | **http://127.0.0.1:8000/api/documentation** |
+| Fichier JSON généré | `books-api/storage/api-docs/api-docs.json` (servi sur http://127.0.0.1:8000/docs) |
+| Configuration | `books-api/config/l5-swagger.php` |
+| Annotations | `books-api/app/OpenApi/` |
+
+#### Fichiers d'annotations
+
+La documentation n'est pas écrite dans les contrôleurs : elle est regroupée dans des classes dédiées, avec des annotations `@OA\...`. L5-Swagger lit les dossiers `app/OpenApi` et `app/Http/Controllers/Api` (clé `annotations` de `config/l5-swagger.php`).
+
+| Fichier | Contenu |
+|---|---|
+| `app/OpenApi/OpenApiSpec.php` | `@OA\Info` (titre « Books API », version 1.0.0), `@OA\Server` (`http://127.0.0.1:8000/api`), schéma de sécurité `sanctum` (Bearer), schémas `Book`, `Author`, `User`, `LoginResponse`, `MessageResponse` |
+| `app/OpenApi/AuthDocs.php` | Tag **Authentication** : `register`, `verify-email`, `login`, `logout`, `forgot-password`, `reset-password` |
+| `app/OpenApi/BookDocs.php` | Tag **Books** : liste, détail, ajout, modification, suppression |
+| `app/OpenApi/AuthorDocs.php` | Tag **Authors** : liste, détail, ajout, modification, suppression |
+
+#### Générer ou mettre à jour la documentation
+
+Le fichier `api-docs.json` est déjà présent dans le projet. Après une modification des annotations, régénérez-le :
+
+```bash
+cd books-api
+php artisan l5-swagger:generate
+```
+
+Puis rechargez la page `/api/documentation`.
+
+> Pour régénérer automatiquement à chaque chargement de la page (pratique en développement, à éviter en production), ajoutez `L5_SWAGGER_GENERATE_ALWAYS=true` dans `.env`, puis lancez `php artisan config:clear`.
+
+#### Tester une route protégée depuis Swagger
+
+1. Ouvrez http://127.0.0.1:8000/api/documentation.
+2. Dans **Authentication**, ouvrez `POST /login` → **Try it out**, saisissez `admin@gmail.com` / `Admin@123456` → **Execute**.
+3. Copiez la valeur de `token` dans la réponse (exemple : `1|xxxxxxxx`).
+4. Cliquez sur le bouton **Authorize** (cadenas en haut de la page), collez le token **sans** le préfixe `Bearer` (Swagger l'ajoute), puis **Authorize** → **Close**.
+5. Les routes avec un cadenas (`/books/{book}`, routes admin, `/logout`) envoient maintenant l'en-tête `Authorization: Bearer <token>`.
+
+> Le token n'est pas conservé après un rechargement de la page (`L5_SWAGGER_UI_PERSIST_AUTHORIZATION=false` par défaut). Mettez cette variable à `true` dans `.env` pour le garder.
+
+#### Différences connues avec l'API réelle
+
+| Point | Documentation Swagger | Comportement réel |
+|---|---|---|
+| `GET /authors` | Marquée comme protégée (cadenas) | Route publique, aucun token nécessaire |
+| `POST /books` et `PUT /books/{book}` | Corps en JSON, `image` décrit comme une chaîne | L'upload d'image se fait en `multipart/form-data` : utilisez `curl.exe -F` (voir [9.2](#92-exemples-de-requêtes)) pour envoyer une couverture |
+| Codes d'erreur | Codes documentés dans les annotations | Plusieurs erreurs métier répondent en 500 (voir [9.3](#93-codes-de-réponse)) |
+| `/auth/google` | Non documentée | Route web hors `/api` (voir [6](#6-google-oauth)) |
+
+#### Dépannage Swagger
+
+| Problème | Solution |
+|---|---|
+| Page `/api/documentation` vide ou erreur `Unable to render this definition` | Lancez `php artisan l5-swagger:generate` et vérifiez que `storage/api-docs/api-docs.json` existe |
+| Nouvelle route absente de la documentation | Ajoutez ses annotations dans `app/OpenApi/`, puis régénérez |
+| Erreur `Required @OA\Info() not found` à la génération | Vérifiez que `app/OpenApi/OpenApiSpec.php` est présent et que `annotations` contient `base_path('app/OpenApi')` dans `config/l5-swagger.php` |
+| `401 Unauthenticated.` dans Swagger | Cliquez sur **Authorize** et collez un token valide (voir ci-dessus) |
+| Styles ou scripts Swagger UI introuvables (404) | Lancez `composer install` (les fichiers viennent de `vendor/swagger-api/swagger-ui`), puis `php artisan config:clear` |
 
 ---
 
@@ -951,6 +1015,7 @@ Ensuite, ouvrez http://localhost:4200.
 - [ ] Inscription + email OTP reçu + vérification OK (SMTP configuré).
 - [ ] Mot de passe oublié OK.
 - [ ] Connexion Google OK (Client ID, Secret et URI de redirection configurés).
+- [ ] La documentation Swagger s'affiche sur http://127.0.0.1:8000/api/documentation.
 - [ ] Aucun vrai secret dans `.env.example`, le README ou Git.
 - [x] Captures d'écran ajoutées dans `docs/screenshots/`.
 
